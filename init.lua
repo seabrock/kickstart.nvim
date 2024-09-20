@@ -576,7 +576,6 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
         --        pyright = {
         --          settings = {
         --            pyright = {
@@ -592,6 +591,41 @@ require('lazy').setup({
         --          },
         --        },
         ruff = {},
+        clangd = {
+          keys = {
+            { '<leader>ch', '<cmd>ClangdSwitchSourceHeader<cr>', desc = 'Switch Source/Header (C/C++)' },
+          },
+          root_dir = function(fname)
+            return require('lspconfig.util').root_pattern(
+              'Makefile',
+              'configure.ac',
+              'configure.in',
+              'config.h.in',
+              'meson.build',
+              'meson_options.txt',
+              'build.ninja'
+            )(fname) or require('lspconfig.util').root_pattern('compile_commands.json', 'compile_flags.txt')(fname) or require('lspconfig.util').find_git_ancestor(
+              fname
+            )
+          end,
+          capabilities = {
+            offsetEncoding = { 'utf-16' },
+          },
+          cmd = {
+            'clangd',
+            '--background-index',
+            '--clang-tidy',
+            '--header-insertion=iwyu',
+            '--completion-style=detailed',
+            '--function-arg-placeholders',
+            '--fallback-style=llvm',
+          },
+          init_options = {
+            usePlaceholders = true,
+            completeUnimported = true,
+            clangdFileStatus = true,
+          },
+        },
         -- gopls = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -909,6 +943,28 @@ require('lazy').setup({
     'zbirenbaum/copilot-cmp',
     config = function()
       require('copilot_cmp').setup()
+    end,
+  },
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('lualine').setup {
+        tabline = {
+          lualine_a = {},
+          lualine_b = { 'branch' },
+          lualine_c = { 'filename' },
+          lualine_x = {},
+          lualine_y = {},
+          lualine_z = {},
+        },
+      }
+    end,
+  },
+  {
+    'goolord/alpha-nvim',
+    config = function()
+      require('alpha').setup(require('alpha.themes.startify').config)
     end,
   },
 
